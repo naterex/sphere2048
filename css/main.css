@@ -1,0 +1,17 @@
+body {
+
+}
+
+.board {
+
+}
+
+.cell {
+    background: green;
+    border: 1px solid black;
+    float: left;
+    height: 100px;
+    width: 25%;
+
+}
+
