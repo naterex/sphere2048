@@ -1,0 +1,10 @@
+*.js
+*.map
+.DS_Store
+
+# Logs
+logs
+*.log
+
+# Runtime data
+pids
