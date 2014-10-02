@@ -23,10 +23,13 @@ body {
     background: rgba(238, 238, 218, 0.35);
     border: 1px solid black;
     border-radius: 3px;
-    font-size: 0.8em;
+    font-size: 2em;
     float: left;
     margin: 7px;
     width: 100px;
     height: 100px;
+}
 
+.cell div {
+    margin-top: 30px;
 }
