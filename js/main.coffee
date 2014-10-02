@@ -40,17 +40,25 @@ move = (board, direction) ->
       collapseCells()
 
 getRow = (z, board) ->
-  console.log z
-  printArray(board)
   [board[z][0], board[z][1], board[z][2], board[z][3]]
 
 
 mergeCells = (row, direction) ->
-  console.log "merge cells"
   if direction is "right"
     for a in [3...0]
       for b in [a-1..0]
         console.log a, b
+
+        if row[a] is 0 then break
+        else if row[a] == row[b]
+          row[a] *= 2
+          row[b] = 0
+        else if row[b] isnt 0 then break
+  row
+
+# console.log mergeCells [2,2,2,0], "right"
+console.log mergeCells [4,0,0,4], "right"
+
 
 collapseCells = ->
   console.log "collapse cells"
