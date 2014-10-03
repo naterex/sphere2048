@@ -1,13 +1,4 @@
 buildBoard = ->
-  # board = []
-  # for row in [0..3]
-  #     board[row] = []
-  #     console.log "row: ", row
-
-  #     for column in [0..3]
-  #         board[row][column] = 0
-  #         console.log "column: ", column
-  # board[boardArray[0][0],0,0,0]
   [0..3].map -> [0..3].map -> 0
 
 
@@ -16,7 +7,7 @@ randomInt = (x) ->
 
 
 randomCellIndices = ->
-  aero = [randomInt(4), randomInt(4)]
+  [randomInt(4), randomInt(4)]
 
 
 randomValue = ->
@@ -40,37 +31,56 @@ move = (board, direction) ->
   newBoard = buildBoard()
 
   for i in [0..3]
-    if direction is 'right'
+    if direction in ["right", "down"]
       row = getRow(i, board)
-      mergeCells(row, direction)
+      row = mergeCells(row, direction)
       row = collapseCells(row, direction)
       setRow(row, i, newBoard)
-      # console.log row
+    else if direction in ["left", "up"]
+      column = getColumn(i, board)
+      column = mergeCells(column, direction)
+      column = collapseCells(column, direction)
+      setColumn(column, i, newBoard)
   newBoard
 
 
 getRow = (r, board) ->
   [board[r][0], board[r][1], board[r][2], board[r][3]]
 
-
 setRow = (row, index, board) ->
   board[index] = row
 
 
-mergeCells = (row, direction) ->
-  if direction is "right"
+getColumn = (c, board) ->
+  [board[0][c], board[1][c], board[2][c], board[3][c]]
+
+setColumn = (column, index, board) ->
+  for i in [0..3]
+    board[i][index] = column[i]
+
+
+mergeCells = (cells, direction) ->
+
+  merge = (cells) ->
     for a in [3...0]
       for b in [a-1..0]
-        # console.log a, b
+        if cells[a] is 0 then break
+        else if cells[a] == cells[b]
+          cells[a] *= 2
+          cells[b] = 0
+          break
+        else if cells[b] isnt 0 then break
+    cells
 
-        if row[a] is 0 then break
-        else if row[a] == row[b]
-          row[a] *= 2
-          row[b] = 0
-        else if row[b] isnt 0 then break
-  row
-# this row does not merge correct
-# console.log mergeCells [2,0,2,2], "right"
+  if direction in ["right", "down"]
+    cells = merge(cells)
+  else if direction in ["left", "up"]
+    cells = merge(cells.reverse()).reverse()
+
+  cells
+
+# console.log "mergeCells #{mergeCells [2,2,0,4], "left"}"
+# console.log "mergeCells #{mergeCells [2,2,0,4], "down"}"
 
 
 moveIsValid = (originalBoard, newBoard) ->
@@ -81,22 +91,46 @@ moveIsValid = (originalBoard, newBoard) ->
   false
 
 
-collapseCells = (row, direction) ->
+boardIsFull = (board) ->
+  for row in board
+    if 0 in row
+      return false
+  true
+
+
+noValidMoves = (board) ->
+  direction = "right" # FIXME: handle other directions
+  newBoard = move(board, direction)
+  if moveIsValid(board, newBoard)
+    return false
+  true
+
+
+isGameOver = (board) ->
+  boardIsFull(board) and noValidMoves(board)
+
+
+collapseCells = (cells, direction) ->
   #remove 0
-  row = row.filter (x) -> x isnt 0
+  cells = cells.filter (x) -> x isnt 0
   # adding 0
-  while row.length < 4
-    row.unshift(0)
-  row
+  while cells.length < 4
+    if direction in ["right", "down"]
+      cells.unshift(0)
+    else if direction in ["left", "up"]
+      cells.push(0)
+  cells
 # console.log collapseCells [2,0,2,4], "right"
 
 
 showBoard = (board) ->
   for row in [0..3]
     for col in [0..3]
-      $(".r#{row}.c#{col} > div").html(board[row][col])
-
-  console.log "show board"
+      if  board[row][col] == 0
+        $(".r#{row}.c#{col} > div").html(" ")
+      else
+        $(".r#{row}.c#{col} > div").html(board[row][col])
+  # console.log "show board"
 
 
 printArray = (array) ->
@@ -123,27 +157,31 @@ $ ->
       console.log "key: #{key}"
       #continue the game
       direction = switch key
-        when 37 then 'left'
-        when 38 then 'up'
-        when 39 then 'right'
-        when 40 then 'down'
+        when 37 then "left"
+        when 38 then "up"
+        when 39 then "right"
+        when 40 then "down"
       console.log "direction: #{direction}"
 
-      #try moving
+      # try moving
       newBoard = move(@board, direction)
       printArray(newBoard)
 
-      #check move validity by comparing the original and new board
+      # check move validity by comparing the original and new board
       if moveIsValid(@board, newBoard)
         console.log "valid"
         @board = newBoard
 
-        #generate board
-        generateTile(@board)
+        # generate board
         generateTile(@board)
 
-        #show board
-        showBoard(@board)
+        # check game lost
+        if isGameOver(@board)
+          console.log "YOU LOSE!"
+        else
+          #show board
+          showBoard(@board)
+          printArray(newBoard)
 
       else
         console.log "invalid"
