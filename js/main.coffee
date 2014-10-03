@@ -14,12 +14,15 @@ buildBoard = ->
 randomInt = (x) ->
   Math.floor(Math.random() * x)
 
+
 randomCellIndices = ->
   aero = [randomInt(4), randomInt(4)]
+
 
 randomValue = ->
   values = [2,2,2,4]
   values[randomInt(4)]
+
 
 generateTile = (board) ->
   value = randomValue()
@@ -32,22 +35,33 @@ generateTile = (board) ->
     generateTile(board)
     console.log "generate tile"
 
+
 move = (board, direction) ->
+  newBoard = buildBoard()
+
   for i in [0..3]
     if direction is 'right'
       row = getRow(i, board)
       mergeCells(row, direction)
-      collapseCells()
+      row = collapseCells(row, direction)
+      setRow(row, i, newBoard)
+      # console.log row
+  newBoard
 
-getRow = (z, board) ->
-  [board[z][0], board[z][1], board[z][2], board[z][3]]
+
+getRow = (r, board) ->
+  [board[r][0], board[r][1], board[r][2], board[r][3]]
+
+
+setRow = (row, index, board) ->
+  board[index] = row
 
 
 mergeCells = (row, direction) ->
   if direction is "right"
     for a in [3...0]
       for b in [a-1..0]
-        console.log a, b
+        # console.log a, b
 
         if row[a] is 0 then break
         else if row[a] == row[b]
@@ -55,13 +69,26 @@ mergeCells = (row, direction) ->
           row[b] = 0
         else if row[b] isnt 0 then break
   row
+# this row does not merge correct
+# console.log mergeCells [2,0,2,2], "right"
 
-# console.log mergeCells [2,2,2,0], "right"
-console.log mergeCells [4,0,0,4], "right"
+
+moveIsValid = (originalBoard, newBoard) ->
+  for row in [0..3]
+    for col in [0..3]
+      if originalBoard[row][col] isnt newBoard[row][col]
+        return true
+  false
 
 
-collapseCells = ->
-  console.log "collapse cells"
+collapseCells = (row, direction) ->
+  #remove 0
+  row = row.filter (x) -> x isnt 0
+  # adding 0
+  while row.length < 4
+    row.unshift(0)
+  row
+# console.log collapseCells [2,0,2,4], "right"
 
 
 showBoard = (board) ->
@@ -70,6 +97,7 @@ showBoard = (board) ->
       $(".r#{row}.c#{col} > div").html(board[row][col])
 
   console.log "show board"
+
 
 printArray = (array) ->
   console.log "-- Start --"
@@ -102,9 +130,23 @@ $ ->
       console.log "direction: #{direction}"
 
       #try moving
-      move(@board, direction)
+      newBoard = move(@board, direction)
+      printArray(newBoard)
 
-      #check move validity
+      #check move validity by comparing the original and new board
+      if moveIsValid(@board, newBoard)
+        console.log "valid"
+        @board = newBoard
+
+        #generate board
+        generateTile(@board)
+        generateTile(@board)
+
+        #show board
+        showBoard(@board)
+
+      else
+        console.log "invalid"
 
     else
         #do nothing
