@@ -17,26 +17,26 @@ randomValue = ->
 
 generateTile = (board) ->
   value = randomValue()
-  [row, column] = randomCellIndices()
-  console.log "row: #{row} / col: #{column}"
+  [row, col] = randomCellIndices()
+  # console.log "row: #{row} / col: #{col}"
 
-  if board[row][column] is 0
-    board[row][column] = value
+  if board[row][col] is 0
+    board[row][col] = value
   else
     generateTile(board)
-    console.log "generate tile"
+    # console.log "generate tile"
 
 
 move = (board, direction) ->
   newBoard = buildBoard()
 
   for i in [0..3]
-    if direction in ["right", "down"]
+    if direction in ["right", "left"]
       row = getRow(i, board)
       row = mergeCells(row, direction)
       row = collapseCells(row, direction)
       setRow(row, i, newBoard)
-    else if direction in ["left", "up"]
+    else if direction in ["down", "up"]
       column = getColumn(i, board)
       column = mergeCells(column, direction)
       column = collapseCells(column, direction)
@@ -99,10 +99,10 @@ boardIsFull = (board) ->
 
 
 noValidMoves = (board) ->
-  direction = "right" # FIXME: handle other directions
-  newBoard = move(board, direction)
-  if moveIsValid(board, newBoard)
-    return false
+  directions = ["right", "down", "left", "up"]
+  for direction in directions
+    newBoard = move(board, direction)
+    return false if moveIsValid(board, newBoard)
   true
 
 
@@ -154,22 +154,22 @@ $ ->
     keys = [37..40]
 
     if keys.indexOf (key) > -1
-      console.log "key: #{key}"
+      # console.log "key: #{key}"
       #continue the game
       direction = switch key
         when 37 then "left"
         when 38 then "up"
         when 39 then "right"
         when 40 then "down"
-      console.log "direction: #{direction}"
+      # console.log "direction: #{direction}"
 
       # try moving
       newBoard = move(@board, direction)
-      printArray(newBoard)
+      # printArray(newBoard)
 
       # check move validity by comparing the original and new board
       if moveIsValid(@board, newBoard)
-        console.log "valid"
+        # console.log "valid"
         @board = newBoard
 
         # generate board
@@ -181,10 +181,10 @@ $ ->
         else
           #show board
           showBoard(@board)
-          printArray(newBoard)
+          # printArray(newBoard)
 
       else
-        console.log "invalid"
+        console.log "invalid direction"
 
     else
         #do nothing
