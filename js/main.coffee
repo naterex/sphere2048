@@ -26,23 +26,51 @@ generateTile = (board) ->
     generateTile(board)
     # console.log "generate tile"
 
-
 move = (board, direction) ->
+  #1 create new cloned empty board array
   newBoard = buildBoard()
 
-  for i in [0..3]
-    if direction in ["right", "left"]
+  if direction in ["right", "left"]
+    for i in [0..3]
       row = getRow(i, board)
       row = mergeCells(row, direction)
       row = collapseCells(row, direction)
       setRow(row, i, newBoard)
-    else if direction in ["down", "up"]
+  else if direction in ["down", "up"]
+    for i in [0..3]
       column = getColumn(i, board)
       column = mergeCells(column, direction)
       column = collapseCells(column, direction)
       setColumn(column, i, newBoard)
+  else if direction is "x"
+    for i in [0..3]
+      #2 clone board with for, for loop
+      row = getRow(i, board)
+      setRow(row, i, newBoard)
+
+      #3 swap corners
+    newBoard = xCornerSwitch(newBoard)
+
+  console.log("newBoard")
+  printArray(newBoard)
   newBoard
 
+
+xCornerSwitch = (board) ->
+  # extract values of corners
+  oldTopLeft = board[0][0]
+  oldTopRight = board[0][3]
+  oldBotLeft = board[3][0]
+  oldBotRight = board[3][3]
+
+  # exchange corners
+  board[0][0] = oldBotRight #topLeft
+  board[0][3] = oldBotLeft #topRight
+  board[3][0] = oldTopRight #botLeft
+  board[3][3] = oldTopLeft #botRight
+
+  # return new xBoard
+  board
 
 getRow = (r, board) ->
   [board[r][0], board[r][1], board[r][2], board[r][3]]
@@ -148,19 +176,23 @@ $ ->
   showBoard(@board)
 
   $('body').keydown (e) =>
-    e.preventDefault()
 
     key = e.which
-    keys = [37..40]
+    keys = [37, 38, 39, 40, 88, 120]
 
-    if keys.indexOf (key) > -1
+    if keys.indexOf(key) > -1
+      #prevent default key function
+      e.preventDefault()
+
       # console.log "key: #{key}"
-      #continue the game
+      # continue the game
       direction = switch key
         when 37 then "left"
         when 38 then "up"
         when 39 then "right"
         when 40 then "down"
+        when 88 then "x"
+        when 120 then "x"
       # console.log "direction: #{direction}"
 
       # try moving
@@ -172,8 +204,9 @@ $ ->
         # console.log "valid"
         @board = newBoard
 
-        # generate board
-        generateTile(@board)
+        # generate new tile if key isn't "x"
+        if direction isnt "x"
+          generateTile(@board)
 
         # check game lost
         if isGameOver(@board)
